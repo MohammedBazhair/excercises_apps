@@ -11,6 +11,7 @@ dependencies:
     sdk: flutter
   file_picker: ^10.3.10
   excel: ^4.0.6
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:

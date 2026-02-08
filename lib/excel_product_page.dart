@@ -1,11 +1,11 @@
-// ignore_for_file: deprecated_member_use
-
 import 'dart:io';
 
-import 'package:excel/excel.dart' as e;
+import 'package:excel/excel.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:test_off/main.dart';
 
+/// صفحة عرض المنتجات المقروءة من Excel
 class ExcelProductsPage extends StatefulWidget {
   const ExcelProductsPage({super.key});
 
@@ -14,37 +14,105 @@ class ExcelProductsPage extends StatefulWidget {
 }
 
 class _ExcelProductsPageState extends State<ExcelProductsPage> {
+  /// القائمة النهائية للمنتجات
   List<Product> _products = [];
 
+  /// مؤشر تحميل بسيط للواجهة
+  bool _isLoading = false;
+
+  /// تحميل ملف Excel وقراءته
   Future<void> loadExcel() async {
-    final file = await pickExcelFile();
-    if (file == null) return;
+    try {
+      // اختيار ملف Excel من الجهاز
+      final filePath = await pickExcelFile();
+      if (filePath == null) return;
 
-    final result = await readProductsFromExcel(file);
+      setState(() {
+        _isLoading = true;
+      });
 
-    setState(() {
+      // قراءة المنتجات من الملف
+      final result = readProductsFromExcel(filePath);
+
       _products = result;
-    });
+    } catch (e) {
+      // في المشاريع الحقيقية يفضل logging framework
+      print(e);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
-  Future<List<Product>> readProductsFromExcel(File file) async {
+  /// إنشاء ملف Excel جديد وحفظه في مجلد يختاره المستخدم
+  Future<void> saveExcel() async {
+    // إنشاء ملف Excel فارغ
+    final Excel excel = Excel.createExcel();
+
+    // الحصول على أول Sheet (يتم إنشاؤه تلقائيًا)
+    final sheet = excel.sheets.values.first;
+
+    // دعم الاتجاه من اليمين لليسار (للعربية)
+    sheet.isRTL = true;
+
+    // الصفوف (Headers + Data)
+    final row0 = [TextCellValue('Product Name'), TextCellValue('Price')];
+
+    final row1 = [TextCellValue('Laptop Dell'), DoubleCellValue(1500)];
+
+    final row2 = [TextCellValue('Mouse'), DoubleCellValue(50)];
+
+    // إضافة الصفوف إلى الشيت
+    excel.appendRow(sheet.sheetName, row0);
+    excel.appendRow(sheet.sheetName, row1);
+    excel.appendRow(sheet.sheetName, row2);
+
+    // تحويل ملف Excel إلى bytes
+    final fileBytes = excel.save(fileName: 'FlutterExcel.xlsx');
+    if (fileBytes == null) return;
+
+    // اختيار مجلد الحفظ
+    final path = await pickOutputFolder();
+    if (path == null) return;
+
+    // المسار النهائي للملف
+    final pathFile = '$path/test.xlsx';
+
+    // كتابة الملف فعليًا على القرص
+    final file = File(pathFile);
+    await file.writeAsBytes(fileBytes);
+  }
+
+  /// قراءة المنتجات من ملف Excel وتحويلها إلى List<Product>
+  List<Product> readProductsFromExcel(String path) {
     try {
-      final bytes = await file.readAsBytes();
+      // قراءة الملف كـ bytes
+      final File file = File(path);
+      final Uint8List bytes = file.readAsBytesSync();
 
-      final excel = e.Excel.decodeBytes(bytes);
+      // فك ترميز ملف Excel
+      final Excel excel = Excel.decodeBytes(bytes);
 
-      final sheet = excel.tables.values.first;
+      // افتراض أن أول Sheet يحتوي على البيانات
+      final Sheet productsSheet = excel.tables.values.first;
+
       final List<Product> products = [];
 
-      for (int i = 1; i < sheet.rows.length; i++) {
-        final row = sheet.rows[i];
-        final name = row[0]?.value.toString() ?? '';
+      // بدء القراءة من الصف الثاني (تجاوز العناوين)
+      for (int i = 1; i < productsSheet.rows.length; i++) {
+        final row = productsSheet.rows[i];
+
+        final name = row[0]?.value.toString() ?? 'without name';
+
         final price = double.tryParse(row[1]?.value.toString() ?? '0') ?? 0;
 
-        final product = Product(name: name, price: price);
-        products.add(product);
+        products.add(Product(name: name, price: price));
+
+        // لأغراض التتبع أثناء التطوير
+        print(i);
       }
-      print(products);
+
       return products;
     } catch (e, st) {
       print(e);
@@ -55,209 +123,66 @@ class _ExcelProductsPageState extends State<ExcelProductsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Enterprise color palette
-    const primaryNavy = Color(0xFF1A237E);
-    const accentBlue = Color(0xFF3949AB);
-    const backgroundGray = Color(0xFFF8F9FA);
-
     return Scaffold(
-      backgroundColor: backgroundGray,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        centerTitle:
-            false, // Apps like Stripe/Amazon often use left-aligned titles
-        title: const Text(
-          'Inventory Dashboard',
-          style: TextStyle(
-            color: primaryNavy,
-            fontWeight: FontWeight.w800,
-            fontSize: 22,
-            letterSpacing: -0.5,
-          ),
-        ),
+        title: const Text('Products'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list, color: primaryNavy),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header Stats Section - Gives a professional "Enterprise" feel
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-              ),
-              child: Row(
-                children: [
-                  _buildQuickStat(
-                    'Items',
-                    _products.length.toString(),
-                    Icons.inventory_2_outlined,
-                  ),
-                  const SizedBox(width: 40),
-                  _buildQuickStat(
-                    'Status',
-                    _products.isEmpty ? 'Empty' : 'Syncing',
-                    Icons.cloud_done_outlined,
-                  ),
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: _products.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 20,
-                      ),
-                      itemCount: _products.length,
-                      itemBuilder: (context, index) {
-                        final product = _products[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 15,
-                            ),
-                            leading: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: accentBlue.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  product.name[0].toUpperCase(),
-                                  style: const TextStyle(
-                                    color: accentBlue,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            title: Text(
-                              product.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                                color: primaryNavy,
-                              ),
-                            ),
-                            subtitle: Text('${index + 1}'),
-                            trailing: Text(
-                              '\$${product.price}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 17,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-
-            // Modern Action Button
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton.icon(
-                  onPressed: loadExcel,
-                  icon: const Icon(Icons.add_chart_rounded, size: 20),
-                  label: const Text(
-                    'IMPORT EXCEL DATA',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryNavy,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+          // مؤشر تحميل بسيط في شريط التطبيق
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Helper Widget for Stats
-  Widget _buildQuickStat(String label, String value, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: Colors.grey),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // Helper Widget for Empty State
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.analytics_outlined, size: 60, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          const Text(
-            'No data available',
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const Text(
-            'Please upload your inventory file to begin.',
-            style: TextStyle(color: Colors.grey, fontSize: 13),
-          ),
         ],
+      ),
+
+      // عرض رسالة في حال عدم وجود بيانات
+      body: _products.isEmpty
+          ? const Center(
+              child: Text(
+                'No data loaded',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            )
+          : ListView.builder(
+              itemCount: _products.length,
+              itemBuilder: (context, index) {
+                final product = _products[index];
+
+                return ListTile(
+                  dense: true,
+                  leading: CircleAvatar(
+                    radius: 18,
+                    child: Text(
+                      product.name.isNotEmpty
+                          ? product.name[0].toUpperCase()
+                          : '?',
+                    ),
+                  ),
+                  title: Text(
+                    product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text('Item ${index + 1}'),
+                  trailing: Text(
+                    '\$${product.price}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                );
+              },
+            ),
+
+      // زر حفظ ملف Excel
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async => await saveExcel(),
+        child: const Icon(Icons.upload_file),
       ),
     );
   }
