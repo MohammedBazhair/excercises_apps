@@ -9,11 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  file_picker: ^10.3.10
-  excel: ^4.0.6
-  permission_handler: ^12.0.1
-  firebase_core: ^4.7.0
-  cloud_firestore: ^6.3.0
 
 dev_dependencies:
   flutter_test:
