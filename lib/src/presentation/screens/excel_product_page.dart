@@ -92,9 +92,9 @@ class _ExcelProductsPageState extends State<ExcelProductsPage> {
         ),
         actions: [
           IconButton(
-            tooltip: 'جلب المنتجات الذي سعرها على الاقل 300',
+            tooltip: 'جلب المنتجات الذي سعرها على الاقل 40',
             onPressed: () async {
-              final products = await ProductsService().fetchProductsWhere(300);
+              final products = await ProductsService().fetchProductsWhere(40);
               setState(() {
                 _products = products;
                 _source = Source.server;
@@ -102,6 +102,19 @@ class _ExcelProductsPageState extends State<ExcelProductsPage> {
             },
             icon: Icon(Icons.where_to_vote),
           ),
+        
+          IconButton(
+            tooltip: 'جلب المنتجات كلها من فايربيس',
+            onPressed: () async {
+              final products = await ProductsService().fetchProducts();
+              setState(() {
+                _products = products;
+                _source = Source.server;
+              });
+            },
+            icon: Icon(Icons.all_inbox),
+          ),
+        
         ],
       ),
 
