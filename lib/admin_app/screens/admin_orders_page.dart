@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_off/admin_app/widgets/order_card.dart';
 import 'package:test_off/core/models/order_model.dart';
 import 'package:test_off/core/services/orders_service.dart';
 
@@ -20,6 +21,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
   }
 
   void _loadOrders() async {
+    setState(() => _isLoading = true);
     final orders = await OrdersService().fetchAllOrders();
     setState(() {
       _orders = orders;
@@ -27,58 +29,66 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     });
   }
 
-  void _updateStatus(String orderId, String status) async {
+  void _handleUpdate(String orderId, String status) async {
+    // إظهار Loading خفيف أثناء التحديث
     await OrdersService().updateOrderStatus(orderId, status);
     _loadOrders();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
-    if (_orders.isEmpty) return const Center(child: Text('No orders found'));
-
-    return ListView.builder(
-      itemCount: _orders.length,
-      itemBuilder: (context, index) {
-        final order = _orders[index];
-        return Card(
-          margin: const EdgeInsets.all(8.0),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('User ID: ${order.userId}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text('Total Price: \$${order.totalPrice.toStringAsFixed(2)}'),
-                Text('Status: ${order.status}', style: TextStyle(color: _getStatusColor(order.status))),
-                const Divider(),
-                const Text('Products:', style: TextStyle(fontWeight: FontWeight.bold)),
-                ...order.products.map((p) => Text('- ${p.name} (\$${p.price})')),
-                const SizedBox(height: 10),
-                if (order.status == 'pending') Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => _updateStatus(order.id!, 'rejected'),
-                      child: const Text('Reject', style: TextStyle(color: Colors.red)),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => _updateStatus(order.id!, 'accepted'),
-                      child: const Text('Accept'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+    return Scaffold(
+      backgroundColor: const Color(
+        0xffF1F5F9,
+      ), // خلفية رمادية فاتحة جداً تبرز البطاقات البيضاء
+      appBar: AppBar(
+        title: const Text(
+          'Order Management',
+          style: TextStyle(
+            color: Color(0xff1E293B),
+            fontWeight: FontWeight.bold,
           ),
-        );
-      },
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: _loadOrders,
+            icon: const Icon(Icons.refresh_rounded, color: Colors.indigo),
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _orders.isEmpty
+          ? _buildEmptyState()
+          : ListView.builder(
+              padding: const EdgeInsets.all(20),
+              itemCount: _orders.length,
+              itemBuilder: (context, index) {
+                return OrderCard(
+                  order: _orders[index],
+                  onAccept: () => _handleUpdate(_orders[index].id!, 'accepted'),
+                  onReject: () => _handleUpdate(_orders[index].id!, 'rejected'),
+                );
+              },
+            ),
     );
   }
 
-  Color _getStatusColor(String status) {
-    if (status == 'accepted') return Colors.green;
-    if (status == 'rejected') return Colors.red;
-    return Colors.orange;
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.inbox_outlined, size: 80, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          const Text(
+            'No orders found',
+            style: TextStyle(color: Color(0xff64748B), fontSize: 18),
+          ),
+        ],
+      ),
+    );
   }
 }

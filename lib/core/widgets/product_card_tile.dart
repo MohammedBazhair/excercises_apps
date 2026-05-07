@@ -1,18 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:test_off/core/models/product.dart';
+
 class ProductCardTile extends StatelessWidget {
   final Product product;
   final int index;
   final Source source;
-  final VoidCallback? onEdit;
+  final VoidCallback onTrailingIconTapped;
+  final IconData trailingIcon;
 
   const ProductCardTile({
     super.key,
     required this.product,
     required this.index,
     required this.source,
-    this.onEdit,
+    required this.onTrailingIconTapped,
+    required this.trailingIcon,
   });
 
   @override
@@ -84,11 +87,11 @@ class ProductCardTile extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             IconButton(
-              icon: const Icon(
-                Icons.edit_note_rounded,
+              icon: Icon(
+                trailingIcon,
                 color: Color(0xff94A3B8),
               ),
-              onPressed: onEdit,
+              onPressed: onTrailingIconTapped,
               hoverColor: Colors.indigo.withOpacity(0.05),
             ),
           ],

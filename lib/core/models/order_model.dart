@@ -1,11 +1,17 @@
 import 'package:test_off/core/models/product.dart';
 
+enum OrderStatus {
+  pending,
+  accepted,
+  rejected,
+}
+
 class OrderModel {
   final String? id;
   final String userId;
   final List<Product> products;
   final double totalPrice;
-  final String status;
+  final OrderStatus status;
   final DateTime createdAt;
 
   OrderModel({
@@ -22,7 +28,7 @@ class OrderModel {
       'userId': userId,
       'products': products.map((p) => p.toMap()).toList(),
       'totalPrice': totalPrice,
-      'status': status,
+      'status': status.name,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -35,7 +41,7 @@ class OrderModel {
           .map((p) => Product.fromMap(p as Map<String, dynamic>))
           .toList(),
       totalPrice: (map['totalPrice'] as num?)?.toDouble() ?? 0.0,
-      status: map['status'] ?? 'pending',
+      status: OrderStatus.values.byName(map['status'] ?? 'pending'),
       createdAt: map['createdAt'] != null 
           ? DateTime.parse(map['createdAt']) 
           : DateTime.now(),

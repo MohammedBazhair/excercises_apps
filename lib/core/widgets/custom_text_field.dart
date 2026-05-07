@@ -6,6 +6,7 @@ class CustomTextField extends StatelessWidget {
   final String? hintText;
   final IconData icon;
   final bool isNumber;
+  final bool readOnly;
   final ValueChanged<String>? onChanged;
 
   const CustomTextField({
@@ -15,6 +16,7 @@ class CustomTextField extends StatelessWidget {
     required this.icon,
     this.hintText,
     this.isNumber = false,
+    this.readOnly = false,
     this.onChanged,
   });
 
@@ -40,12 +42,13 @@ class CustomTextField extends StatelessWidget {
               ? const TextInputType.numberWithOptions(decimal: true)
               : TextInputType.text,
           style: const TextStyle(fontSize: 15, color: Color(0xff1E293B)),
+          readOnly: readOnly,
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: const TextStyle(color: Color(0xffCBD5E1), fontSize: 14),
             prefixIcon: Icon(icon, size: 20, color: const Color(0xff94A3B8)),
             filled: true,
-            fillColor: const Color(0xffF8FAFC), // خلفية خفيفة جداً للويب
+            fillColor: const Color(0xFFFFFFFF), // خلفية خفيفة جداً للويب
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 18, // زيادة الارتفاع قليلاً ليعطي شعور الـ Premium

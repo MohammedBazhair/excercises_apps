@@ -93,7 +93,7 @@ class _ExcelProductsPageState extends State<ExcelProductsPage> {
     });
   }
 
-  void updateProduct(Product updatedProduct) async {
+  Future<void> updateProduct(Product updatedProduct) async {
     Navigator.pop(context);
 
     setState(() => _isLoading = true);
@@ -109,7 +109,7 @@ class _ExcelProductsPageState extends State<ExcelProductsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF8FAFC), // لون خلفية أهدأ وأكثر احترافية
+      backgroundColor: const Color(0xffF8FAFC),
       appBar: AppBar(
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -163,10 +163,11 @@ class _ExcelProductsPageState extends State<ExcelProductsPage> {
                             product: _products[index],
                             index: index,
                             source: _source,
-                            onEdit: () => showEditDialog(
+                            trailingIcon: Icons.edit_note_rounded,
+                            onTrailingIconTapped: () => showEditDialog(
                               context: context,
                               product: _products[index],
-                              onSave: (updatedProduct) {},
+                              onSave: updateProduct,
                             ),
                           );
                         },

@@ -31,7 +31,10 @@ class _UserHomePageState extends State<UserHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+      backgroundColor: const Color(0xffF8FAFC),
+
         title: const Text('Customer App'),
+        forceMaterialTransparency: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -39,8 +42,12 @@ class _UserHomePageState extends State<UserHomePage> {
           ),
         ],
       ),
+      backgroundColor: const Color(0xffF8FAFC),
+
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
+      backgroundColor: const Color(0xFFFFFFFF),
+
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         items: const [
