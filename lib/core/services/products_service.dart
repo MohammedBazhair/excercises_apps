@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:test_off/src/models/product.dart';
+import 'package:test_off/core/models/product.dart';
 
 class ProductsService {
   ProductsService._();
@@ -41,7 +41,9 @@ class ProductsService {
     try {
       final snapshots = await _productsCollection.get();
 
-      return snapshots.docs.map((doc) => Product.fromMap(doc.data())).toList();
+      return snapshots.docs
+          .map((doc) => Product.fromMap(doc.data(), id: doc.id))
+          .toList();
     } catch (e) {
       print(e);
       return [];
@@ -54,10 +56,21 @@ class ProductsService {
           .where('price', isGreaterThanOrEqualTo: smallerPrice)
           .get();
 
-      return snapshots.docs.map((doc) => Product.fromMap(doc.data())).toList();
+      return snapshots.docs
+          .map((doc) => Product.fromMap(doc.data(), id: doc.id))
+          .toList();
     } catch (e) {
       print(e);
       return [];
+    }
+  }
+
+  Future<void> updateProduct(Product product) async {
+    if (product.id == null) return;
+    try {
+      await _productsCollection.doc(product.id).update(product.toMap());
+    } catch (e) {
+      print(e);
     }
   }
 }

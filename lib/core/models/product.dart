@@ -1,14 +1,15 @@
 /// Model (Entity) يمثل المنتج
 /// يستخدم لاحقًا لعرض البيانات في الواجهة
 class Product {
+  final String? id;
   final String name;
   final double price;
 
-  Product({required this.name, required this.price});
+  Product({this.id, required this.name, required this.price});
 
   /// مفيد أثناء الـ debugging
   @override
-  String toString() => 'Product(name: $name, price: $price)';
+  String toString() => 'Product(id: $id, name: $name, price: $price)';
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -17,10 +18,11 @@ class Product {
     };
   }
 
-  factory Product.fromMap(Map<String, dynamic> map) {
+  factory Product.fromMap(Map<String, dynamic> map, {String? id}) {
     return Product(
+      id: id,
       name: map['product_name'] as String,
-      price: map['price'] as double,
+      price: (map['price'] as num).toDouble(),
     );
   }
 
