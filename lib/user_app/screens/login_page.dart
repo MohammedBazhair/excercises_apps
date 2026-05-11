@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test_off/admin_app/screens/admin_home_page.dart';
 import 'package:test_off/core/services/auth_service.dart';
 import 'package:test_off/core/widgets/custom_text_field.dart';
 import 'package:test_off/user_app/screens/user_home_page.dart';
@@ -6,8 +8,8 @@ import 'package:test_off/user_app/widgets/password_field.dart';
 import 'package:test_off/user_app/widgets/profile_submit_button.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
-
+  const LoginPage({super.key, this.isAdmin = false});
+  final bool isAdmin;
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -16,6 +18,9 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+
+  Widget get _homePage =>
+      widget.isAdmin ? const AdminHomePage() : const UserHomePage();
 
   // دالة التعامل مع الردود (Snackbar) بتنسيق Premium
   void _showCustomSnackBar(String message, bool isError) {
@@ -28,6 +33,11 @@ class _LoginPageState extends State<LoginPage> {
         margin: const EdgeInsets.all(20),
       ),
     );
+  }
+
+  Future<void> _saveLoginState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
   }
 
   void _login() async {
@@ -45,9 +55,10 @@ class _LoginPageState extends State<LoginPage> {
 
     if (user != null) {
       if (!mounted) return;
+      await _saveLoginState();
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const UserHomePage()),
+        MaterialPageRoute(builder: (_) => _homePage),
       );
     } else {
       if (!mounted) return;
@@ -71,10 +82,11 @@ class _LoginPageState extends State<LoginPage> {
 
     if (user != null) {
       if (!mounted) return;
+      await _saveLoginState();
       _showCustomSnackBar('Account created successfully!', false);
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const UserHomePage()),
+        MaterialPageRoute(builder: (_) => _homePage),
       );
     } else {
       if (!mounted) return;
@@ -166,5 +178,4 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
- }
+}

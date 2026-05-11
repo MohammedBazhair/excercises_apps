@@ -115,7 +115,7 @@ class _ExcelProductsPageState extends State<ExcelProductsPage> {
         surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.white,
         title: const Text(
-          'Products Inventory',
+          'Products Inventory v2',
           style: TextStyle(
             fontWeight: FontWeight.w800,
             color: Color(0xff1E293B),
