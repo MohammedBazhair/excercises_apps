@@ -23,15 +23,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
@@ -73,4 +67,23 @@ class DefaultFirebaseOptions {
     storageBucket: 'excercise-apps-4df93.firebasestorage.app',
     measurementId: 'G-7TB6FMFB7Y',
   );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyC-up7mMy7YCTaR6zEiasHeWi3y81_U2Js',
+    appId: '1:523166610417:ios:1a4fcbb544941b00b34a50',
+    messagingSenderId: '523166610417',
+    projectId: 'excercise-apps-4df93',
+    storageBucket: 'excercise-apps-4df93.firebasestorage.app',
+    iosBundleId: 'com.example.testOff',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyC-up7mMy7YCTaR6zEiasHeWi3y81_U2Js',
+    appId: '1:523166610417:ios:1a4fcbb544941b00b34a50',
+    messagingSenderId: '523166610417',
+    projectId: 'excercise-apps-4df93',
+    storageBucket: 'excercise-apps-4df93.firebasestorage.app',
+    iosBundleId: 'com.example.testOff',
+  );
+
 }

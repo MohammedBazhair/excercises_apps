@@ -1,3 +1,5 @@
+https://excercise-apps-4df93.web.app
+
 📊 Flutter Excel Example
 
 مشروع Flutter تعليمي يوضّح كيفية قراءة وكتابة ملفات Excel (.xlsx) باستخدام Flutter، مع السماح للمستخدم باختيار الملف والمجلد يدويًا.
